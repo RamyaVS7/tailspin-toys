@@ -51,6 +51,105 @@ Refer to technology-specific instruction files:
 - Use props for configuration, not duplication
 - Document component APIs with TypeScript types
 
+## Coding Standards
+
+### Comment Philosophy
+
+Comments should **explain intent and reasoning**, not restate code. Follow these guidelines:
+
+- **Comment why, not what**: Explain non-obvious decisions, assumptions, or the reasoning behind the code — not what the code already says.
+- **Avoid redundant comments**: Do not add comments that merely paraphrase the line below. Remove them.
+- **Example of bad commenting**:
+  ```ts
+  // loop through games
+  for (const game of games) {
+    // check if game exists
+    if (game) {
+      // add to list
+      list.push(game);
+    }
+  }
+  ```
+- **Example of good commenting**:
+  ```ts
+  // Filter out null entries that may occur from concurrent deletes
+  for (const game of games) {
+    if (game) {
+      list.push(game);
+    }
+  }
+  ```
+- **Keep comments current**: Treat outdated or incorrect comments as bugs. Update or delete them in the same change that modifies the related code.
+
+### Documentation Requirements
+
+#### Data Layer (db/ and src/lib/)
+
+Every exported function must have a **TSDoc/JSDoc** comment describing:
+- **Purpose**: What the function does
+- **Parameters**: Each parameter with its type and meaning
+- **Return value**: What is returned and when (e.g., null for not found)
+
+Example:
+```ts
+/**
+ * Retrieves all games ordered by title.
+ * @param db The database client instance
+ * @returns Promise resolving to an array of games sorted alphabetically by title
+ */
+export async function getAllGames(db: Database): Promise<Game[]> {
+  // ...
+}
+
+/**
+ * Retrieves a single game by ID.
+ * @param db The database client instance (injectable for testing)
+ * @param id The game's numeric ID
+ * @returns Promise resolving to the Game if found, null otherwise
+ */
+export async function getGameById(db: Database, id: number): Promise<Game | null> {
+  // ...
+}
+```
+
+Keep the injectable `db` argument documented so the testing pattern stays clear.
+
+#### Astro Components
+
+Every reusable `.astro` component must document its **Props interface**:
+
+```astro
+---
+/**
+ * Reusable button component supporting multiple styles and sizes.
+ */
+interface Props {
+  /** Visual style of the button ('solid' or 'gradient'). */
+  variant?: 'solid' | 'gradient';
+  /** Padding scale ('sm' or 'md'). */
+  size?: 'sm' | 'md';
+  /** When provided, renders an anchor element instead of a button. */
+  href?: string;
+  /** Button type when rendered as a button element. */
+  type?: 'button' | 'submit' | 'reset';
+  /** Stretch the button to fill its container. */
+  fullWidth?: boolean;
+}
+
+const { variant = 'solid', size = 'md', href, type = 'button', fullWidth = false } = Astro.props;
+---
+
+<!-- Component template -->
+```
+
+### TypeScript Formatting Rules
+
+- Use **explicit types** for function parameters and return values, especially in the data layer (`db/`, `src/lib/`)
+- Imports and exports must be clearly typed — avoid implicit `any`
+- Use semantic type names: `Game`, `Publisher`, `Category`, `Database`
+- Complex types should be declared in `src/types/` and reused across the codebase
+- Type annotations help Copilot and other tooling understand intent, making code easier to maintain
+
 ## Development Workflow
 
 1. **Choose the right tool**: 

@@ -120,3 +120,37 @@ There is no Svelte/React layer. When a page genuinely needs client behaviour, ad
 - Minimize client-side JavaScript — the default is zero JS shipped
 - Import and use global CSS styles from layouts
 - Always include a `data-testid` on interactive elements (see `ui.instructions.md`)
+
+## Component Documentation
+
+Every reusable `.astro` component must document its **Props interface** so the component API is self-explanatory:
+
+```astro
+---
+/**
+ * Reusable button component supporting multiple styles and sizes.
+ * Use for primary actions, form submissions, and navigation links.
+ */
+interface Props {
+  /** Visual style: 'solid' applies a flat color, 'gradient' applies a color gradient. */
+  variant?: 'solid' | 'gradient';
+  /** Padding scale: 'sm' for compact buttons, 'md' for standard size. */
+  size?: 'sm' | 'md';
+  /** When provided, renders an anchor element instead of a button for navigation. */
+  href?: string;
+  /** Button type when rendered as a `<button>` element. */
+  type?: 'button' | 'submit' | 'reset';
+  /** Stretch the button to fill its container width. */
+  fullWidth?: boolean;
+}
+
+const { variant = 'solid', size = 'md', href, type = 'button', fullWidth = false } = Astro.props;
+---
+
+<!-- Component template -->
+```
+
+- Add a **JSDoc comment** above the interface describing the component's purpose
+- Document each property with a **@description-style comment** (as shown above)
+- Include examples of when to use the component in the JSDoc if not obvious
+- This ensures Copilot and other developers understand the component's API without reading the implementation

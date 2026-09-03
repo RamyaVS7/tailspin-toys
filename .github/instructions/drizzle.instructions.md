@@ -45,11 +45,24 @@ import { asc, count, eq } from 'drizzle-orm';
 import type { Database } from './db';
 import { games } from '../../db/schema';
 
-export async function getAllGameIds(db: Database): Promise<number[]> {
+/**
+ * Retrieves all games ordered by title.
+ * @param db The database client instance
+ * @returns Promise resolving to an array of games sorted alphabetically by title
+ */
+export async function getAllGames(db: Database): Promise<Game[]> {
   const rows = await db.select({ id: games.id }).from(games).orderBy(asc(games.title));
   return rows.map((r) => r.id);
 }
 ```
+
+Every exported function must have a **TSDoc/JSDoc comment** documenting:
+- **Purpose**: A one-line summary of what the function does
+- **@param db**: Always describe the database client as injectable for testing
+- **@param**: Any additional parameters with type and meaning
+- **@returns**: What is returned and under what conditions (e.g., null for not found)
+
+This pattern ensures both Copilot and future maintainers understand the function's contract.
 
 - Always `order by` a stable column (title) so static builds are deterministic.
 - Map raw rows to the app-facing `Game`/`Publisher`/`Category` types in one place; don't leak Drizzle row shapes into components.
