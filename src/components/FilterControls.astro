@@ -1,0 +1,42 @@
+---
+import CategoryFilter from './CategoryFilter.astro';
+import PublisherFilter from './PublisherFilter.astro';
+
+/**
+ * Filter controls wrapper that combines category and publisher filters.
+ * Manages the overall filter UI and clear filters functionality.
+ */
+interface Props {
+  /** Array of all available categories */
+  categories: Array<{ id: number; name: string }>;
+  /** Array of all available publishers */
+  publishers: Array<{ id: number; name: string }>;
+  /** Currently selected category IDs from URL query params */
+  selectedCategoryIds: number[];
+  /** Currently selected publisher IDs from URL query params */
+  selectedPublisherIds: number[];
+}
+
+const { categories, publishers, selectedCategoryIds, selectedPublisherIds } = Astro.props;
+const hasActiveFilters = selectedCategoryIds.length > 0 || selectedPublisherIds.length > 0;
+---
+
+<div class="mb-8 p-6 bg-slate-800 rounded-lg border border-slate-700" data-testid="filter-controls">
+  <div class="flex items-center justify-between mb-6">
+    <h3 class="text-xl font-semibold text-slate-100">Filter Games</h3>
+    {hasActiveFilters && (
+      <a
+        href="/"
+        class="text-sm text-blue-400 hover:text-blue-300 transition-colors duration-150 underline"
+        data-testid="clear-filters-button"
+      >
+        Clear Filters
+      </a>
+    )}
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <CategoryFilter categories={categories} selectedCategoryIds={selectedCategoryIds} />
+    <PublisherFilter publishers={publishers} selectedPublisherIds={selectedPublisherIds} />
+  </div>
+</div>

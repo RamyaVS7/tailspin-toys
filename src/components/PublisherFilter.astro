@@ -1,0 +1,69 @@
+---
+/**
+ * Reusable publisher filter component with checkboxes.
+ * Renders a list of publishers with checkboxes to filter games.
+ * Uses URL query parameters to persist filter state.
+ */
+interface Props {
+  /** Array of all available publishers with id and name */
+  publishers: Array<{ id: number; name: string }>;
+  /** Array of currently selected publisher IDs */
+  selectedPublisherIds: number[];
+}
+
+const { publishers, selectedPublisherIds } = Astro.props;
+---
+
+<fieldset class="mb-8">
+  <legend class="block text-lg font-semibold text-slate-100 mb-4">Publishers</legend>
+  <div class="space-y-3" role="group" aria-labelledby="publisher-legend">
+    {publishers.map((publisher) => (
+      <div key={publisher.id} class="flex items-center">
+        <input
+          type="checkbox"
+          id={`publisher-${publisher.id}`}
+          data-filter-type="publisher"
+          value={publisher.id}
+          checked={selectedPublisherIds.includes(publisher.id)}
+          data-testid={`publisher-filter-${publisher.id}`}
+          class="w-4 h-4 rounded border-slate-600 bg-slate-700 text-blue-600 cursor-pointer focus:ring-2 focus:ring-blue-500 focus:ring-offset-slate-800"
+          aria-label={`Filter by ${publisher.name} publisher`}
+        />
+        <label
+          for={`publisher-${publisher.id}`}
+          class="ml-3 text-slate-300 cursor-pointer hover:text-slate-100 transition-colors duration-150"
+        >
+          {publisher.name}
+        </label>
+      </div>
+    ))}
+  </div>
+</fieldset>
+
+<script>
+  // Handle filter checkbox changes and update URL
+  const publisherCheckboxes = document.querySelectorAll('input[data-filter-type="publisher"]');
+  
+  publisherCheckboxes.forEach((checkbox) => {
+    checkbox.addEventListener('change', updateFilters);
+  });
+  
+  function updateFilters() {
+    const categoryCheckboxes = document.querySelectorAll('input[data-filter-type="category"]:checked');
+    const publisherCheckboxes = document.querySelectorAll('input[data-filter-type="publisher"]:checked');
+    
+    const currentUrl = new URL(window.location);
+    currentUrl.searchParams.delete('category');
+    currentUrl.searchParams.delete('publisher');
+    
+    categoryCheckboxes.forEach((checkbox) => {
+      currentUrl.searchParams.append('category', checkbox.value);
+    });
+    
+    publisherCheckboxes.forEach((checkbox) => {
+      currentUrl.searchParams.append('publisher', checkbox.value);
+    });
+    
+    window.location.href = currentUrl.toString();
+  }
+</script>
