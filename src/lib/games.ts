@@ -1,4 +1,4 @@
-import { eq, asc } from 'drizzle-orm';
+import { eq, asc, inArray, and } from 'drizzle-orm';
 import type { Database } from './db';
 import { games, categories, publishers } from '../../db/schema';
 import type { Game } from '../types/game';
@@ -66,4 +66,92 @@ export async function getAllGameIds(db: Database): Promise<number[]> {
 export async function getGameById(db: Database, id: number): Promise<Game | null> {
     const row = await baseGamesQuery(db).where(eq(games.id, id)).get();
     return row ? mapGame(row) : null;
+}
+
+/**
+ * Retrieves all games filtered by one or more categories, ordered by title.
+ * @param db The database client instance (injectable for testing)
+ * @param categoryIds Array of category IDs to filter by (uses OR logic: shows games in any selected category)
+ * @returns Promise resolving to an array of games matching the categories, sorted alphabetically by title
+ */
+export async function getGamesByCategory(db: Database, categoryIds: number[]): Promise<Game[]> {
+    if (categoryIds.length === 0) {
+        return getAllGames(db);
+    }
+    const rows = await baseGamesQuery(db)
+        .where(inArray(games.categoryId, categoryIds))
+        .orderBy(asc(games.title));
+    return rows.map(mapGame);
+}
+
+/**
+ * Retrieves all games filtered by one or more publishers, ordered by title.
+ * @param db The database client instance (injectable for testing)
+ * @param publisherIds Array of publisher IDs to filter by (uses OR logic: shows games by any selected publisher)
+ * @returns Promise resolving to an array of games matching the publishers, sorted alphabetically by title
+ */
+export async function getGamesByPublisher(db: Database, publisherIds: number[]): Promise<Game[]> {
+    if (publisherIds.length === 0) {
+        return getAllGames(db);
+    }
+    const rows = await baseGamesQuery(db)
+        .where(inArray(games.publisherId, publisherIds))
+        .orderBy(asc(games.title));
+    return rows.map(mapGame);
+}
+
+/**
+ * Retrieves games filtered by categories and/or publishers, ordered by title.
+ * When both filters are provided, uses AND logic: returns games matching (any category) AND (any publisher).
+ * @param db The database client instance (injectable for testing)
+ * @param filters Object with optional categoryIds and publisherIds arrays
+ * @param filters.categoryIds Optional array of category IDs to filter by
+ * @param filters.publisherIds Optional array of publisher IDs to filter by
+ * @returns Promise resolving to an array of games matching all specified filters, sorted alphabetically by title
+ */
+export async function getGamesByFilters(
+    db: Database,
+    filters: { categoryIds?: number[]; publisherIds?: number[] }
+): Promise<Game[]> {
+    const { categoryIds = [], publisherIds = [] } = filters;
+
+    // If no filters provided, return all games
+    if (categoryIds.length === 0 && publisherIds.length === 0) {
+        return getAllGames(db);
+    }
+
+    const conditions = [];
+
+    if (categoryIds.length > 0) {
+        conditions.push(inArray(games.categoryId, categoryIds));
+    }
+    if (publisherIds.length > 0) {
+        conditions.push(inArray(games.publisherId, publisherIds));
+    }
+
+    // Use and() to combine conditions if multiple, otherwise use single condition
+    const whereCondition = conditions.length > 1 ? and(...conditions) : conditions[0];
+    const rows = await baseGamesQuery(db)
+        .where(whereCondition)
+        .orderBy(asc(games.title));
+
+    return rows.map(mapGame);
+}
+
+/**
+ * Retrieves all categories ordered by name.
+ * @param db The database client instance (injectable for testing)
+ * @returns Promise resolving to an array of all categories sorted alphabetically by name
+ */
+export async function getAllCategories(db: Database): Promise<Array<{ id: number; name: string }>> {
+    return db.select({ id: categories.id, name: categories.name }).from(categories).orderBy(asc(categories.name));
+}
+
+/**
+ * Retrieves all publishers ordered by name.
+ * @param db The database client instance (injectable for testing)
+ * @returns Promise resolving to an array of all publishers sorted alphabetically by name
+ */
+export async function getAllPublishers(db: Database): Promise<Array<{ id: number; name: string }>> {
+    return db.select({ id: publishers.id, name: publishers.name }).from(publishers).orderBy(asc(publishers.name));
 }
