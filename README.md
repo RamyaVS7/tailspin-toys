@@ -88,6 +88,20 @@ npm run typecheck:all    # both of the above
 > [!NOTE]
 > The native compiler is used only for type checking (`--noEmit`); the site is still built by `astro build` (Vite/esbuild). The classic `typescript` package stays on v6 until `typescript-eslint` and `@astrojs/check` support the native API (~TS 7.1); a Dependabot `ignore` in `.github/dependabot.yml` holds the classic `typescript@7` bump until then.
 
+## Coding Standards
+
+Clear, consistent coding standards make it easier for contributors (and Copilot) to produce correct changes. This project enforces a **comment philosophy** and documentation requirements to keep the codebase understandable:
+
+- **Comment intent, not mechanics**: Explain *why* code exists or the reasoning behind decisions, not *what* the code does.
+- **Document the data layer**: Every exported function in `db/` and `src/lib/` must have TSDoc/JSDoc comments.
+- **Document component contracts**: Each reusable `.astro` component should document its Props interface.
+- **Keep comments current**: Treat outdated comments as bugs — update or delete them with the related code change.
+
+Full guidance is documented in:
+- [`.github/instructions/ui.instructions.md`](.github/instructions/ui.instructions.md) — comment philosophy and coding standards
+- [`.github/instructions/drizzle.instructions.md`](.github/instructions/drizzle.instructions.md) — data layer documentation requirements
+- [`.github/instructions/astro.instructions.md`](.github/instructions/astro.instructions.md) — component documentation and TypeScript patterns
+
 ## Copilot Agents & Skills
 
 This project ships Copilot customizations to assist with quality assurance:
