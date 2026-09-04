@@ -42,32 +42,3 @@ const { categories, selectedCategoryIds } = Astro.props;
     })}
   </div>
 </fieldset>
-
-<script>
-  // Handle filter checkbox changes and update URL
-  const categoryCheckboxes = document.querySelectorAll<HTMLInputElement>('input[data-filter-type="category"]');
-  
-  categoryCheckboxes.forEach((checkbox) => {
-    checkbox.addEventListener('change', updateFilters);
-  });
-  
-  function updateFilters() {
-    const categoryCheckboxes = document.querySelectorAll<HTMLInputElement>('input[data-filter-type="category"]:checked');
-    const publisherCheckboxes = document.querySelectorAll<HTMLInputElement>('input[data-filter-type="publisher"]:checked');
-
-    const currentUrl = new URL(window.location.href);
-    currentUrl.searchParams.delete('category');
-    currentUrl.searchParams.delete('publisher');
-
-    categoryCheckboxes.forEach((checkbox) => {
-      currentUrl.searchParams.append('category', checkbox.value);
-    });
-
-    publisherCheckboxes.forEach((checkbox) => {
-      currentUrl.searchParams.append('publisher', checkbox.value);
-    });
-    
-    window.location.href = currentUrl.toString();
-  }
-</script>
-

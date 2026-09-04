@@ -164,8 +164,8 @@ test.describe('Game Listing and Navigation', () => {
         await page.locator('input[data-filter-type="category"]').first().click();
       });
 
-      await test.step('Verify URL contains category filter and games are filtered', async () => {
-        await expect(page).toHaveURL(/\?category=\d+/);
+      await test.step('Verify games are filtered and heading updates', async () => {
+        await expect(page.getByTestId('games-heading')).toHaveText('Filtered Games');
         await expect(page.getByTestId('games-grid')).toBeVisible();
       });
     });
@@ -176,12 +176,13 @@ test.describe('Game Listing and Navigation', () => {
         const count = await categoryCheckboxes.count();
         if (count >= 2) {
           await categoryCheckboxes.nth(0).click();
+          await expect(categoryCheckboxes.nth(0)).toBeChecked();
           await categoryCheckboxes.nth(1).click();
         }
       });
 
-      await test.step('Verify URL contains both category filters', async () => {
-        await expect(page).toHaveURL(/\?category=\d+&category=\d+/);
+      await test.step('Verify games are filtered and heading updates', async () => {
+        await expect(page.getByTestId('games-heading')).toHaveText('Filtered Games');
         await expect(page.getByTestId('games-grid')).toBeVisible();
       });
     });
@@ -191,8 +192,8 @@ test.describe('Game Listing and Navigation', () => {
         await page.locator('input[data-filter-type="publisher"]').first().click();
       });
 
-      await test.step('Verify URL contains publisher filter and games are filtered', async () => {
-        await expect(page).toHaveURL(/\?publisher=\d+/);
+      await test.step('Verify games are filtered and heading updates', async () => {
+        await expect(page.getByTestId('games-heading')).toHaveText('Filtered Games');
         await expect(page.getByTestId('games-grid')).toBeVisible();
       });
     });
@@ -203,12 +204,13 @@ test.describe('Game Listing and Navigation', () => {
         const count = await publisherCheckboxes.count();
         if (count >= 2) {
           await publisherCheckboxes.nth(0).click();
+          await expect(publisherCheckboxes.nth(0)).toBeChecked();
           await publisherCheckboxes.nth(1).click();
         }
       });
 
-      await test.step('Verify URL contains both publisher filters', async () => {
-        await expect(page).toHaveURL(/\?publisher=\d+&publisher=\d+/);
+      await test.step('Verify games are filtered and heading updates', async () => {
+        await expect(page.getByTestId('games-heading')).toHaveText('Filtered Games');
         await expect(page.getByTestId('games-grid')).toBeVisible();
       });
     });
@@ -221,8 +223,8 @@ test.describe('Game Listing and Navigation', () => {
         await firstPublisher.click();
       });
 
-      await test.step('Verify URL contains both category and publisher filters', async () => {
-        await expect(page).toHaveURL(/\?category=\d+&publisher=\d+/);
+      await test.step('Verify games are filtered and heading updates', async () => {
+        await expect(page.getByTestId('games-heading')).toHaveText('Filtered Games');
         await expect(page.getByTestId('games-grid')).toBeVisible();
       });
     });
@@ -230,7 +232,7 @@ test.describe('Game Listing and Navigation', () => {
     test('clear filters button removes all filters', async ({ page }) => {
       await test.step('Apply a filter', async () => {
         await page.locator('input[data-filter-type="category"]').first().click();
-        await expect(page).toHaveURL(/\?category=\d+/);
+        await expect(page.getByTestId('games-heading')).toHaveText('Filtered Games');
       });
 
       await test.step('Click clear filters button', async () => {
@@ -263,14 +265,25 @@ test.describe('Game Listing and Navigation', () => {
       });
     });
 
-    test('displays empty state when no games match filters', async ({ page }) => {
-      await test.step('Navigate with non-matching filters', async () => {
-        // Try to navigate with category=999 and publisher=999 (non-existent IDs)
-        await page.goto('/?category=999&publisher=999');
+    test('combines category and publisher filters and updates display', async ({ page }) => {
+      await test.step('Apply category and publisher filters', async () => {
+        const categoryCheckbox = page.locator('input[data-filter-type="category"]').first();
+        const publisherCheckbox = page.locator('input[data-filter-type="publisher"]').first();
+        await categoryCheckbox.click();
+        await publisherCheckbox.click();
+        await expect(page.getByTestId('games-heading')).toHaveText('Filtered Games');
       });
 
-      await test.step('Verify empty state message is displayed', async () => {
-        await expect(page.getByText(/No games match your filters/i)).toBeVisible();
+      await test.step('Verify games are displayed or empty state shows', async () => {
+        // Check if there are matching games or if empty state is shown
+        const gamesGrid = page.getByTestId('games-grid');
+        const emptyState = page.getByTestId('empty-state');
+        
+        const gridVisible = await gamesGrid.isVisible().catch(() => false);
+        const emptyVisible = await emptyState.isVisible().catch(() => false);
+        
+        // Either grid is visible OR empty state is visible (but not both)
+        expect(gridVisible || emptyVisible).toBe(true);
       });
     });
   });

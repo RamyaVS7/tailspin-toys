@@ -43,12 +43,12 @@ const publishers = await getAllPublishers(db);
     />
 
     <div>
-      <h2 class="text-2xl font-medium mb-6 text-slate-100">
+      <h2 class="text-2xl font-medium mb-6 text-slate-100" data-testid="games-heading">
         {selectedCategoryIds.length > 0 || selectedPublisherIds.length > 0 ? 'Filtered Games' : 'Featured Games'}
       </h2>
 
       {games.length === 0 ? (
-        <EmptyState text="No games match your filters. Try adjusting your selection." />
+        <EmptyState text="No games match your filters. Try adjusting your selection." data-testid="empty-state" />
       ) : (
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" data-testid="games-grid">
           {games.map((game) => <GameCard game={game} />)}

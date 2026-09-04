@@ -24,15 +24,14 @@ const hasActiveFilters = selectedCategoryIds.length > 0 || selectedPublisherIds.
 <div class="mb-8 p-6 bg-slate-800 rounded-lg border border-slate-700" data-testid="filter-controls">
   <div class="flex items-center justify-between mb-6">
     <h3 class="text-xl font-semibold text-slate-100">Filter Games</h3>
-    {hasActiveFilters && (
-      <a
-        href="/"
-        class="text-sm text-blue-400 hover:text-blue-300 transition-colors duration-150 underline"
-        data-testid="clear-filters-button"
-      >
-        Clear Filters
-      </a>
-    )}
+    <a
+      href="/"
+      class="text-sm text-blue-400 hover:text-blue-300 transition-colors duration-150 underline"
+      data-testid="clear-filters-button"
+      style={hasActiveFilters ? '' : 'display: none;'}
+    >
+      Clear Filters
+    </a>
   </div>
 
   <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
