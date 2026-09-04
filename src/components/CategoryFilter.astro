@@ -17,49 +17,52 @@ const { categories, selectedCategoryIds } = Astro.props;
 <fieldset class="mb-8">
   <legend class="block text-lg font-semibold text-slate-100 mb-4">Categories</legend>
   <div class="space-y-3" role="group" aria-labelledby="category-legend">
-    {categories.map((category) => (
-      <div key={category.id} class="flex items-center">
-        <input
-          type="checkbox"
-          id={`category-${category.id}`}
-          data-filter-type="category"
-          value={category.id}
-          checked={selectedCategoryIds.includes(category.id)}
-          data-testid={`category-filter-${category.id}`}
-          class="w-4 h-4 rounded border-slate-600 bg-slate-700 text-blue-600 cursor-pointer focus:ring-2 focus:ring-blue-500 focus:ring-offset-slate-800"
-          aria-label={`Filter by ${category.name} category`}
-        />
-        <label
-          for={`category-${category.id}`}
-          class="ml-3 text-slate-300 cursor-pointer hover:text-slate-100 transition-colors duration-150"
-        >
-          {category.name}
-        </label>
-      </div>
-    ))}
+    {categories.map((category) => {
+      const checkboxId = `category-${category.id}`;
+      return (
+        <div class="flex items-center">
+          <input
+            type="checkbox"
+            id={checkboxId}
+            data-filter-type="category"
+            value={category.id}
+            checked={selectedCategoryIds.includes(category.id)}
+            data-testid={`category-filter-${category.id}`}
+            class="w-4 h-4 rounded border-slate-600 bg-slate-700 text-blue-600 cursor-pointer focus:ring-2 focus:ring-blue-500 focus:ring-offset-slate-800"
+            aria-label={`Filter by ${category.name} category`}
+          />
+          <label
+            for={checkboxId}
+            class="ml-3 text-slate-300 cursor-pointer hover:text-slate-100 transition-colors duration-150"
+          >
+            {category.name}
+          </label>
+        </div>
+      );
+    })}
   </div>
 </fieldset>
 
 <script>
   // Handle filter checkbox changes and update URL
-  const categoryCheckboxes = document.querySelectorAll('input[data-filter-type="category"]');
+  const categoryCheckboxes = document.querySelectorAll<HTMLInputElement>('input[data-filter-type="category"]');
   
   categoryCheckboxes.forEach((checkbox) => {
     checkbox.addEventListener('change', updateFilters);
   });
   
   function updateFilters() {
-    const categoryCheckboxes = document.querySelectorAll('input[data-filter-type="category"]:checked');
-    const publisherCheckboxes = document.querySelectorAll('input[data-filter-type="publisher"]:checked');
-    
-    const currentUrl = new URL(window.location);
+    const categoryCheckboxes = document.querySelectorAll<HTMLInputElement>('input[data-filter-type="category"]:checked');
+    const publisherCheckboxes = document.querySelectorAll<HTMLInputElement>('input[data-filter-type="publisher"]:checked');
+
+    const currentUrl = new URL(window.location.href);
     currentUrl.searchParams.delete('category');
     currentUrl.searchParams.delete('publisher');
-    
+
     categoryCheckboxes.forEach((checkbox) => {
       currentUrl.searchParams.append('category', checkbox.value);
     });
-    
+
     publisherCheckboxes.forEach((checkbox) => {
       currentUrl.searchParams.append('publisher', checkbox.value);
     });
