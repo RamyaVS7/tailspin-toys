@@ -42,24 +42,24 @@ async function seedMultipleCategoriesAndPublishers(db: Database): Promise<{
     const [cat1] = await db
         .insert(categories)
         .values({ name: 'Action', description: 'Action games' })
-        .returning({ id: categories.id });
+        .returning({ id: categories.id, name: categories.name });
     const [cat2] = await db
         .insert(categories)
         .values({ name: 'Puzzle', description: 'Puzzle games' })
-        .returning({ id: categories.id });
+        .returning({ id: categories.id, name: categories.name });
     const [cat3] = await db
         .insert(categories)
         .values({ name: 'Strategy', description: 'Strategy games' })
-        .returning({ id: categories.id });
+        .returning({ id: categories.id, name: categories.name });
 
     const [pub1] = await db
         .insert(publishers)
         .values({ name: 'Publisher A', description: 'Pub A' })
-        .returning({ id: publishers.id });
+        .returning({ id: publishers.id, name: publishers.name });
     const [pub2] = await db
         .insert(publishers)
         .values({ name: 'Publisher B', description: 'Pub B' })
-        .returning({ id: publishers.id });
+        .returning({ id: publishers.id, name: publishers.name });
 
     // Create games: cat1+pub1, cat2+pub1, cat3+pub2, cat1+pub2
     await db.insert(games).values([
