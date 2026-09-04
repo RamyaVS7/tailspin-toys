@@ -1,0 +1,44 @@
+---
+/**
+ * Reusable publisher filter component with checkboxes.
+ * Renders a list of publishers with checkboxes to filter games.
+ * Uses URL query parameters to persist filter state.
+ */
+interface Props {
+  /** Array of all available publishers with id and name */
+  publishers: Array<{ id: number; name: string }>;
+  /** Array of currently selected publisher IDs */
+  selectedPublisherIds: number[];
+}
+
+const { publishers, selectedPublisherIds } = Astro.props;
+---
+
+<fieldset class="mb-8">
+  <legend class="block text-lg font-semibold text-slate-100 mb-4">Publishers</legend>
+  <div class="space-y-3" role="group" aria-labelledby="publisher-legend">
+    {publishers.map((publisher) => {
+      const checkboxId = `publisher-${publisher.id}`;
+      return (
+        <div class="flex items-center">
+          <input
+            type="checkbox"
+            id={checkboxId}
+            data-filter-type="publisher"
+            value={publisher.id}
+            checked={selectedPublisherIds.includes(publisher.id)}
+            data-testid={`publisher-filter-${publisher.id}`}
+            class="w-4 h-4 rounded border-slate-600 bg-slate-700 text-blue-600 cursor-pointer focus:ring-2 focus:ring-blue-500 focus:ring-offset-slate-800"
+            aria-label={`Filter by ${publisher.name} publisher`}
+          />
+          <label
+            for={checkboxId}
+            class="ml-3 text-slate-300 cursor-pointer hover:text-slate-100 transition-colors duration-150"
+          >
+            {publisher.name}
+          </label>
+        </div>
+      );
+    })}
+  </div>
+</fieldset>

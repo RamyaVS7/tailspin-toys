@@ -32,6 +32,86 @@ const { title = "Tailspin Toys" } = Astro.props;
     </body>
 </html>
 
+<script>
+  // Attach event listener immediately to handle checkbox changes
+  document.addEventListener('change', (event) => {
+    const target = event.target as HTMLElement;
+    if (target instanceof HTMLInputElement && target.hasAttribute('data-filter-type')) {
+      // Get the current filter state
+      const selectedCategories = Array.from(
+        document.querySelectorAll<HTMLInputElement>('input[data-filter-type="category"]:checked')
+      ).map((checkbox) => checkbox.value);
+      const selectedPublishers = Array.from(
+        document.querySelectorAll<HTMLInputElement>('input[data-filter-type="publisher"]:checked')
+      ).map((checkbox) => checkbox.value);
+
+      const categoryIds = selectedCategories
+        .map((value) => Number.parseInt(value, 10))
+        .filter((value) => Number.isFinite(value));
+      const publisherIds = selectedPublishers
+        .map((value) => Number.parseInt(value, 10))
+        .filter((value) => Number.isFinite(value));
+
+      // Use requestAnimationFrame to ensure DOM changes are visible
+      requestAnimationFrame(() => {
+        // Get the games grid and update visibility
+        const cards = Array.from(document.querySelectorAll<HTMLElement>('[data-game-id]'));
+        let visibleCount = 0;
+
+        cards.forEach((card) => {
+          const gameCategoryId = Number.parseInt(card.getAttribute('data-category-id') ?? '', 10);
+          const gamePublisherId = Number.parseInt(card.getAttribute('data-publisher-id') ?? '', 10);
+          const matchesCategory = categoryIds.length === 0 || categoryIds.includes(gameCategoryId);
+          const matchesPublisher = publisherIds.length === 0 || publisherIds.includes(gamePublisherId);
+          const visible = matchesCategory && matchesPublisher;
+
+          card.classList.toggle('hidden', !visible);
+          if (visible) {
+            visibleCount += 1;
+          }
+        });
+
+        // Update heading
+        const gamesHeading = document.querySelector<HTMLHeadingElement>('[data-testid="games-heading"]');
+        if (gamesHeading) {
+          gamesHeading.textContent = categoryIds.length > 0 || publisherIds.length > 0 ? 'Filtered Games' : 'Featured Games';
+        }
+
+        // Update empty state and grid visibility
+        const emptyState = document.querySelector<HTMLElement>('[data-testid="empty-state"]');
+        const gamesGrid = document.querySelector<HTMLElement>('[data-testid="games-grid"]');
+        if (emptyState) {
+          emptyState.classList.toggle('hidden', visibleCount !== 0);
+        }
+        if (gamesGrid) {
+          gamesGrid.classList.toggle('hidden', visibleCount === 0);
+        }
+
+        // Update clear filters button visibility
+        const clearButton = document.querySelector<HTMLElement>('[data-testid="clear-filters-button"]');
+        if (clearButton) {
+          clearButton.style.display = categoryIds.length > 0 || publisherIds.length > 0 ? '' : 'none';
+        }
+
+        // Update URL
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.delete('category');
+        currentUrl.searchParams.delete('publisher');
+
+        categoryIds.forEach((id) => {
+          currentUrl.searchParams.append('category', String(id));
+        });
+
+        publisherIds.forEach((id) => {
+          currentUrl.searchParams.append('publisher', String(id));
+        });
+
+        window.history.replaceState({}, '', `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`);
+      });
+    }
+  }, true); // Use capture phase to ensure we catch events
+</script>
+
 <style is:global>
     :root {
         --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;

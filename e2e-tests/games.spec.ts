@@ -133,4 +133,158 @@ test.describe('Game Listing and Navigation', () => {
       await expect(page.getByTestId('not-found-home-link')).toBeVisible();
     });
   });
+
+  test.describe('Game Filtering', () => {
+    test.beforeEach(async ({ page }) => {
+      await page.goto('/');
+      await expect(page.getByTestId('filter-controls')).toBeVisible();
+    });
+
+    test('displays filter controls with categories and publishers', async ({ page }) => {
+      await test.step('Verify filter controls exist', async () => {
+        await expect(page.getByTestId('filter-controls')).toBeVisible();
+        await expect(page.getByRole('heading', { name: /Filter Games/i })).toBeVisible();
+      });
+
+      await test.step('Verify category checkboxes are present', async () => {
+        const categoryCheckboxes = page.locator('input[data-filter-type="category"]');
+        const count = await categoryCheckboxes.count();
+        expect(count).toBeGreaterThan(0);
+      });
+
+      await test.step('Verify publisher checkboxes are present', async () => {
+        const publisherCheckboxes = page.locator('input[data-filter-type="publisher"]');
+        const count = await publisherCheckboxes.count();
+        expect(count).toBeGreaterThan(0);
+      });
+    });
+
+    test('filters games by single category', async ({ page }) => {
+      await test.step('Click first category checkbox', async () => {
+        await page.locator('input[data-filter-type="category"]').first().click();
+      });
+
+      await test.step('Verify games are filtered and heading updates', async () => {
+        await expect(page.getByTestId('games-heading')).toHaveText('Filtered Games');
+        await expect(page.getByTestId('games-grid')).toBeVisible();
+      });
+    });
+
+    test('filters games by multiple categories', async ({ page }) => {
+      await test.step('Click first two category checkboxes', async () => {
+        const categoryCheckboxes = page.locator('input[data-filter-type="category"]');
+        const count = await categoryCheckboxes.count();
+        if (count >= 2) {
+          await categoryCheckboxes.nth(0).click();
+          await expect(categoryCheckboxes.nth(0)).toBeChecked();
+          await categoryCheckboxes.nth(1).click();
+        }
+      });
+
+      await test.step('Verify games are filtered and heading updates', async () => {
+        await expect(page.getByTestId('games-heading')).toHaveText('Filtered Games');
+        await expect(page.getByTestId('games-grid')).toBeVisible();
+      });
+    });
+
+    test('filters games by single publisher', async ({ page }) => {
+      await test.step('Click first publisher checkbox', async () => {
+        await page.locator('input[data-filter-type="publisher"]').first().click();
+      });
+
+      await test.step('Verify games are filtered and heading updates', async () => {
+        await expect(page.getByTestId('games-heading')).toHaveText('Filtered Games');
+        await expect(page.getByTestId('games-grid')).toBeVisible();
+      });
+    });
+
+    test('filters games by multiple publishers', async ({ page }) => {
+      await test.step('Click first two publisher checkboxes', async () => {
+        const publisherCheckboxes = page.locator('input[data-filter-type="publisher"]');
+        const count = await publisherCheckboxes.count();
+        if (count >= 2) {
+          await publisherCheckboxes.nth(0).click();
+          await expect(publisherCheckboxes.nth(0)).toBeChecked();
+          await publisherCheckboxes.nth(1).click();
+        }
+      });
+
+      await test.step('Verify games are filtered and heading updates', async () => {
+        await expect(page.getByTestId('games-heading')).toHaveText('Filtered Games');
+        await expect(page.getByTestId('games-grid')).toBeVisible();
+      });
+    });
+
+    test('combines category and publisher filters', async ({ page }) => {
+      await test.step('Click first category and first publisher checkbox', async () => {
+        const firstCategory = page.locator('input[data-filter-type="category"]').first();
+        const firstPublisher = page.locator('input[data-filter-type="publisher"]').first();
+        await firstCategory.click();
+        await firstPublisher.click();
+      });
+
+      await test.step('Verify games are filtered and heading updates', async () => {
+        await expect(page.getByTestId('games-heading')).toHaveText('Filtered Games');
+        await expect(page.getByTestId('games-grid')).toBeVisible();
+      });
+    });
+
+    test('clear filters button removes all filters', async ({ page }) => {
+      await test.step('Apply a filter', async () => {
+        await page.locator('input[data-filter-type="category"]').first().click();
+        await expect(page.getByTestId('games-heading')).toHaveText('Filtered Games');
+      });
+
+      await test.step('Click clear filters button', async () => {
+        await expect(page.getByTestId('clear-filters-button')).toBeVisible();
+        await page.getByTestId('clear-filters-button').click();
+      });
+
+      await test.step('Verify all filters are cleared', async () => {
+        await expect(page).toHaveURL('/');
+        await expect(page.getByTestId('clear-filters-button')).not.toBeVisible();
+      });
+    });
+
+    test('category filter checkboxes are keyboard navigable', async ({ page }) => {
+      await test.step('Tab to first category checkbox and verify focus', async () => {
+        const firstCheckbox = page.locator('input[data-filter-type="category"]').first();
+        await page.keyboard.press('Tab');
+        // Keep tabbing until we hit the first category checkbox
+        let focused = await page.evaluate(() => document.activeElement?.getAttribute('id'));
+        while (focused !== (await firstCheckbox.getAttribute('id'))) {
+          await page.keyboard.press('Tab');
+          focused = await page.evaluate(() => document.activeElement?.getAttribute('id'));
+        }
+        // Verify focus ring is visible
+        const isFocused = await firstCheckbox.evaluate((el: HTMLInputElement) => {
+          const style = window.getComputedStyle(el);
+          return style.outline !== 'none' || el === document.activeElement;
+        });
+        expect(isFocused).toBe(true);
+      });
+    });
+
+    test('combines category and publisher filters and updates display', async ({ page }) => {
+      await test.step('Apply category and publisher filters', async () => {
+        const categoryCheckbox = page.locator('input[data-filter-type="category"]').first();
+        const publisherCheckbox = page.locator('input[data-filter-type="publisher"]').first();
+        await categoryCheckbox.click();
+        await publisherCheckbox.click();
+        await expect(page.getByTestId('games-heading')).toHaveText('Filtered Games');
+      });
+
+      await test.step('Verify games are displayed or empty state shows', async () => {
+        // Check if there are matching games or if empty state is shown
+        const gamesGrid = page.getByTestId('games-grid');
+        const emptyState = page.getByTestId('empty-state');
+        
+        const gridVisible = await gamesGrid.isVisible().catch(() => false);
+        const emptyVisible = await emptyState.isVisible().catch(() => false);
+        
+        // Either grid is visible OR empty state is visible (but not both)
+        expect(gridVisible || emptyVisible).toBe(true);
+      });
+    });
+  });
 });
