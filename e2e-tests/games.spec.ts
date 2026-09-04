@@ -160,15 +160,7 @@ test.describe('Game Listing and Navigation', () => {
     });
 
     test('filters games by single category', async ({ page }) => {
-      let categoryName: string | null;
-
-      await test.step('Get first category checkbox', async () => {
-        const firstCategory = page.locator('input[data-filter-type="category"]').first();
-        const label = page.locator(`label[for="${await firstCategory.getAttribute('id')}"]`);
-        categoryName = await label.textContent();
-      });
-
-      await test.step('Click category checkbox', async () => {
+      await test.step('Click first category checkbox', async () => {
         await page.locator('input[data-filter-type="category"]').first().click();
       });
 
